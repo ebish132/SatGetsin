@@ -6,8 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 
 const ERROR_MESSAGES: Record<string, string> = {
   "Invalid login credentials": "E-poçt və ya şifrə yanlışdır.",
-  "Email not confirmed": "E-poçtunuz hələ təsdiqlənməyib. Zəhmət olmasa poçt qutunuzu yoxlayın.",
+  "Email not confirmed": "E-poçtunuz hələ təsdiqlənməyib. Zəhmət olmasa göndərilən kodu təsdiqləyin.",
   "User already registered": "Bu e-poçt ilə artıq qeydiyyat mövcuddur.",
+  "Token has expired or is invalid": "Kod yanlış və ya vaxtı keçib.",
 };
 
 function translateError(message: string) {
@@ -37,7 +38,7 @@ export async function signUp(formData: FormData) {
   const password = formData.get("password") as string;
   const fullName = formData.get("fullName") as string;
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName } },
@@ -47,16 +48,47 @@ export async function signUp(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(translateError(error.message))}`);
   }
 
-  if (data.session) {
-    revalidatePath("/", "layout");
-    redirect("/profil");
+  redirect(`/dogrula?email=${encodeURIComponent(email)}`);
+}
+
+export async function verifySignupCode(formData: FormData) {
+  const email = formData.get("email") as string;
+  const code = (formData.get("code") as string)?.trim();
+
+  if (!code || code.length < 6) {
+    return { error: "6 rəqəmli kodu tam daxil edin." };
   }
 
-  redirect(
-    `/login?message=${encodeURIComponent(
-      "Qeydiyyat tamamlandı. Zəhmət olmasa e-poçtunuzu təsdiqləyin.",
-    )}`,
-  );
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token: code,
+    type: "signup",
+  });
+
+  if (error) {
+    return { error: translateError(error.message) };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/profil");
+}
+
+export async function resendSignupCode(formData: FormData) {
+  const email = formData.get("email") as string;
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+  });
+
+  if (error) {
+    return { error: translateError(error.message) };
+  }
+
+  return { success: true };
 }
 
 export async function signOut() {
