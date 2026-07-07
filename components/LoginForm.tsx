@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { signIn, signUp } from "@/app/login/actions";
 
 export default function LoginForm({
@@ -11,6 +11,12 @@ export default function LoginForm({
   message?: string;
 }) {
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [, signInAction, signInPending] = useActionState(async (_prev: void, formData: FormData) => {
+    await signIn(formData);
+  }, undefined);
+  const [, signUpAction, signUpPending] = useActionState(async (_prev: void, formData: FormData) => {
+    await signUp(formData);
+  }, undefined);
 
   return (
     <div className="mx-auto mt-10 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6">
@@ -47,7 +53,7 @@ export default function LoginForm({
       )}
 
       {tab === "login" ? (
-        <form action={signIn} className="flex flex-col gap-3">
+        <form action={signInAction} className="flex flex-col gap-3">
           <input
             name="email"
             type="email"
@@ -64,13 +70,14 @@ export default function LoginForm({
           />
           <button
             type="submit"
-            className="mt-2 rounded-full bg-green-700 py-2 text-sm font-medium text-white hover:bg-green-800"
+            disabled={signInPending}
+            className="mt-2 rounded-full bg-green-700 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60"
           >
-            Daxil ol
+            {signInPending ? "Daxil olunur..." : "Daxil ol"}
           </button>
         </form>
       ) : (
-        <form action={signUp} className="flex flex-col gap-3">
+        <form action={signUpAction} className="flex flex-col gap-3">
           <input
             name="fullName"
             type="text"
@@ -95,9 +102,10 @@ export default function LoginForm({
           />
           <button
             type="submit"
-            className="mt-2 rounded-full bg-green-700 py-2 text-sm font-medium text-white hover:bg-green-800"
+            disabled={signUpPending}
+            className="mt-2 rounded-full bg-green-700 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60"
           >
-            Qeydiyyatdan keç
+            {signUpPending ? "Göndərilir..." : "Qeydiyyatdan keç"}
           </button>
         </form>
       )}

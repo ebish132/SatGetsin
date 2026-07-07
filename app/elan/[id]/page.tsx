@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ImageGallery from "@/components/ImageGallery";
@@ -12,6 +13,39 @@ function formatDate(iso: string) {
     month: "long",
     year: "numeric",
   });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("title, description, price, city, images")
+    .eq("id", id)
+    .single();
+
+  if (!listing) {
+    return { title: "Elan tapılmadı" };
+  }
+
+  const title = `${listing.title} - ${listing.price.toLocaleString("az")} AZN`;
+  const description =
+    listing.description?.slice(0, 160) ||
+    `${listing.title} - ${listing.city}-da satılır. ${listing.price.toLocaleString("az")} AZN.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: listing.images?.[0] ? [listing.images[0]] : undefined,
+    },
+  };
 }
 
 export default async function ElanDetailPage({
