@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "PowerShell(node -v)",
+      "PowerShell(npm -v)",
+      "PowerShell(Test-Path \"$env:ProgramFiles\\\\nodejs\\\\node.exe\"; Test-Path \"$env:LOCALAPPDATA\\\\Programs\\\\nodejs\\\\node.exe\"; Test-Path \"$env:APPDATA\\\\nvm\"; where.exe node 2>$null)",
+      "PowerShell(winget --version)",
+      "PowerShell(winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); node -v; npm -v)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npx --yes create-next-app@latest --help)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "PowerShell(Start-Process \"http://localhost:3000/profil\")",
+      "PowerShell(Start-Process \"http://localhost:3000/elan-yerlesdir/yeni\")",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__computer",
+      "Bash(mkdir -p \"/c/Users/User/AppData/Local/Temp/claude/C--Users-User-Documents-Ikinci-El/238d3f02-b3d7-4df4-8e80-61c27fcf28f0/scratchpad\")",
+      "Bash(python3 -c ' *)",
+      "Bash(SCRATCH=\"/c/Users/User/AppData/Local/Temp/claude/C--Users-User-Documents-Ikinci-El/238d3f02-b3d7-4df4-8e80-61c27fcf28f0/scratchpad\" *)",
+      "mcp__claude-in-chrome__find",
+      "mcp__claude-in-chrome__file_upload",
+      "mcp__claude-in-chrome__javascript_tool",
+      "PowerShell(Start-Process \"https://supabase.com/dashboard/project/yabeszocttbmsdqktawh/sql/new\")",
+      "PowerShell(Start-Process \"http://localhost:3000\")",
+      "Skill(fewer-permission-prompts)",
+      "Skill(fewer-permission-prompts:*)",
+      "Bash(ls -t \"/c/Users/User/.claude/projects/\" 2>/dev/null | head -20)",
+      "Bash(awk '{print $2}')"
+    ]
+  }
+}
