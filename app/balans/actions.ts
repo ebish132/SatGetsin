@@ -5,8 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 
 const MIN_TOPUP = 1;
 const METHODS = ["visa", "mastercard", "m10"];
+const TOPUP_ENABLED = false;
 
 export async function topUpBalance(formData: FormData) {
+  if (!TOPUP_ENABLED) {
+    return { error: "Balans yükləmə hazırda müvəqqəti bağlıdır." };
+  }
+
   const supabase = await createClient();
 
   const {

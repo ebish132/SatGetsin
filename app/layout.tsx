@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SatGetsin - İkinci əl alqı-satqı",
+  title: "VerGetsin - İkinci əl alqı-satqı",
   description: "İkinci əl əşyalarınızı asanlıqla alın və satın",
 };
 

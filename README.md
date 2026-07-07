@@ -1,4 +1,4 @@
-# SatGetsin
+# VerGetsin
 
 Azərbaycan üçün ikinci əl alqı-satqı platforması (Letgo / Tap.az tipli). İstifadəçilər elan yerləşdirir, axtarır, filtrləyir və satıcı ilə daxili mesajlaşma vasitəsilə əlaqə saxlayır.
 

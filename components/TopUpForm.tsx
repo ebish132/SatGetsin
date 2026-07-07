@@ -13,7 +13,25 @@ const METHODS = [
 
 const PRESETS = [1, 3, 5, 10];
 
+const TOPUP_ENABLED = false;
+
 export default function TopUpForm() {
+  if (!TOPUP_ENABLED) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <h2 className="text-sm font-semibold text-gray-900">Balans artır</h2>
+        <div className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          🔧 Balans yükləmə hazırda müvəqqəti bağlıdır. Real ödəniş sistemi
+          qoşulduqdan sonra yenidən aktivləşəcək.
+        </div>
+      </div>
+    );
+  }
+
+  return <TopUpFormActive />;
+}
+
+function TopUpFormActive() {
   const [state, formAction, pending] = useActionState<State, FormData>(
     async (_prev, formData) => await topUpBalance(formData),
     {},

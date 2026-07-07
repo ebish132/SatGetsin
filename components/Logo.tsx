@@ -18,7 +18,7 @@ export default function Logo() {
         </svg>
       </span>
       <span className="text-xl font-extrabold tracking-tight">
-        <span className="text-gray-900">Sat</span>
+        <span className="text-gray-900">Ver</span>
         <span className="bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
           Getsin
         </span>
