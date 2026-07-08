@@ -42,8 +42,21 @@ export default async function Home({
       ? activeCategory.name
       : "Son elanlar";
 
+  const isDefaultView = !q && !activeCategory && !city && !min && !max;
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      {isDefaultView && (
+        <p className="mb-4 text-sm text-gray-600">
+          VerGetsin — Azərbaycanda{" "}
+          <strong className="font-semibold text-gray-800">
+            ikinci əl əşyaların alqı-satqı
+          </strong>{" "}
+          platforması. Elektronika, geyim, ev əşyaları, nəqliyyat və daha çoxunu
+          pulsuz elanla al və sat.
+        </p>
+      )}
+
       <CategoryNav active={category} />
 
       <div className="mt-4">
@@ -51,7 +64,9 @@ export default async function Home({
       </div>
 
       <div className="mt-6 mb-4 flex items-baseline justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">{heading}</h1>
+        <h1 className="text-lg font-semibold text-gray-900">
+          {isDefaultView ? "İkinci əl elanlar" : heading}
+        </h1>
         <span className="text-sm text-gray-500">{listings.length} elan</span>
       </div>
 
