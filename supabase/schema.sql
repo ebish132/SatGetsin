@@ -16,6 +16,7 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists balance numeric not null default 0;
+alter table public.profiles add column if not exists is_admin boolean not null default false;
 alter table public.profiles enable row level security;
 
 drop policy if exists "Profillər hamı üçün görünür" on public.profiles;
@@ -197,6 +198,42 @@ create policy "Elan sahibi təklifə cavab verə bilər"
     )
   );
 
+-- ---------- BALANS YÜKLƏMƏ SORĞULARI (kartla köçürmə + çek) ----------
+create table if not exists public.topup_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  amount numeric not null,
+  receipt_path text not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz default now(),
+  reviewed_at timestamptz
+);
+
+alter table public.topup_requests enable row level security;
+
+drop policy if exists "İstifadəçi öz sorğularını görür" on public.topup_requests;
+create policy "İstifadəçi öz sorğularını görür"
+  on public.topup_requests for select
+  using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.profiles p where p.id = auth.uid() and p.is_admin
+    )
+  );
+
+drop policy if exists "İstifadəçi öz sorğusunu əlavə edə bilər" on public.topup_requests;
+create policy "İstifadəçi öz sorğusunu əlavə edə bilər"
+  on public.topup_requests for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Admin sorğu statusunu yeniləyə bilər" on public.topup_requests;
+create policy "Admin sorğu statusunu yeniləyə bilər"
+  on public.topup_requests for update
+  using (
+    exists (
+      select 1 from public.profiles p where p.id = auth.uid() and p.is_admin
+    )
+  );
+
 -- ---------- STORAGE (avatar + elan şəkilləri) ----------
 insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)
@@ -233,3 +270,26 @@ drop policy if exists "İstifadəçi öz elan şəklini silə bilər" on storage
 create policy "İstifadəçi öz elan şəklini silə bilər"
   on storage.objects for delete
   using (bucket_id = 'listings' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- ---------- STORAGE (balans çekləri — məxfi) ----------
+insert into storage.buckets (id, name, public)
+values ('receipts', 'receipts', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "Çeki sahibi və ya admin görə bilər" on storage.objects;
+create policy "Çeki sahibi və ya admin görə bilər"
+  on storage.objects for select
+  using (
+    bucket_id = 'receipts'
+    and (
+      auth.uid()::text = (storage.foldername(name))[1]
+      or exists (
+        select 1 from public.profiles p where p.id = auth.uid() and p.is_admin
+      )
+    )
+  );
+
+drop policy if exists "İstifadəçi öz çekini yükləyə bilər" on storage.objects;
+create policy "İstifadəçi öz çekini yükləyə bilər"
+  on storage.objects for insert
+  with check (bucket_id = 'receipts' and auth.uid()::text = (storage.foldername(name))[1]);

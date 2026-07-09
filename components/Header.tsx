@@ -10,13 +10,15 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   let balance = 0;
+  let isAdmin = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("balance")
+      .select("balance, is_admin")
       .eq("id", user.id)
       .single();
     balance = Number(profile?.balance ?? 0);
+    isAdmin = !!profile?.is_admin;
   }
 
   return (
@@ -69,6 +71,14 @@ export default async function Header() {
               >
                 Profilim
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/balans"
+                  className="hidden rounded-full bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 sm:block"
+                >
+                  Admin
+                </Link>
+              )}
               <form action={signOut}>
                 <button
                   type="submit"

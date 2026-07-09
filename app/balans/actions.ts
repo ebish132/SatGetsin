@@ -4,14 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 const MIN_TOPUP = 1;
-const METHODS = ["visa", "mastercard", "m10"];
-const TOPUP_ENABLED = false;
 
-export async function topUpBalance(formData: FormData) {
-  if (!TOPUP_ENABLED) {
-    return { error: "Balans yükləmə hazırda müvəqqəti bağlıdır." };
-  }
-
+export async function submitTopupRequest(formData: FormData) {
   const supabase = await createClient();
 
   const {
@@ -23,38 +17,22 @@ export async function topUpBalance(formData: FormData) {
   }
 
   const amount = Number(formData.get("amount"));
-  const method = formData.get("method") as string;
+  const receiptPath = formData.get("receiptPath") as string;
 
-  if (!METHODS.includes(method)) {
-    return { error: "Ödəniş növü seçin." };
-  }
   if (!amount || amount < MIN_TOPUP) {
     return { error: `Minimum balans yükləmə ${MIN_TOPUP.toFixed(2)} AZN-dir.` };
   }
+  if (!receiptPath) {
+    return { error: "Çekin şəklini yükləyin." };
+  }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("balance")
-    .eq("id", user.id)
-    .single();
-
-  const newBalance = Number(profile?.balance ?? 0) + amount;
-
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ balance: newBalance })
-    .eq("id", user.id);
-
-  if (updateError) return { error: updateError.message };
-
-  const { error: txError } = await supabase.from("wallet_transactions").insert({
+  const { error } = await supabase.from("topup_requests").insert({
     user_id: user.id,
-    type: "topup",
     amount,
-    method,
+    receipt_path: receiptPath,
   });
 
-  if (txError) return { error: txError.message };
+  if (error) return { error: error.message };
 
   revalidatePath("/balans");
   return { success: true };

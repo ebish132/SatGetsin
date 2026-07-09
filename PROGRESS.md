@@ -34,12 +34,13 @@ Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS + Supabase (Auth,
 - **24 saat kilid qaydası:** reklam aktivləşdikdən sonra ləğv edilə/dəyişilə bilməz, 24 saat sonra yenidən mümkündür (`app/elan-yerlesdir/actions.ts` içində `isLocked` məntiqi)
 - Aktivləşdirmə zamanı istifadəçinin balansından məbləğ çıxılır (`wallet_transactions` cədvəlinə `ad_spend` qeydi)
 
-### Balans sistemi
-- `/balans` səhifəsi: balans göstəricisi + yükləmə forması + əməliyyat tarixçəsi
-- Header-də balans nişanı (💰 X.XX AZN)
-- **HAZIRDA SÖNÜKDÜR** (`TOPUP_ENABLED = false` həm `components/TopUpForm.tsx`-də, həm `app/balans/actions.ts`-də) — real ödəniş provayderi qoşulana qədər istifadəçilər balans yükləyə bilmir
-- Səbəb: Stripe Azərbaycana pul çıxarışını dəstəkləmir; **Payriff** tövsiyə olundu (yerli, AZN hesaba birbaşa) amma istifadəçi hələ tacir hesabı/API açarları verməyib
-- ⚠️ Kart nömrəsi/CVV-ni öz formamızda toplama tələbi **rədd edildi** (PCI-DSS təhlükəsizlik pozuntusu) — real inteqrasiya yalnız provayderin öz hosted sahələri ilə olmalıdır
+### Balans sistemi — manual kart köçürməsi + çek təsdiqi (YENİLƏNDİ)
+- Köhnə "kart seç + birbaşa balansa əlavə et" axını (`TOPUP_ENABLED`) TAMAMİLƏ ƏVƏZ OLUNDU
+- Yeni axın: istifadəçi məbləğ seçir → sabit kart nömrəsi göstərilir (`components/TopUpForm.tsx` içində `CARD_NUMBER`) → çekin şəklini yükləyir (`receipts` private bucket) → `topup_requests` cədvəlinə `pending` statusla düşür
+- **Admin paneli:** `/admin/balans` (yalnız `profiles.is_admin = true` olanlara açıqdır) — gözləyən sorğuları, çek şəklini (signed URL, 5 dəq.) və Təsdiqlə/Rədd et düymələrini göstərir. Təsdiqləndikdə balans avtomatik artır + `wallet_transactions`-a yazılır
+- Header-də admin görünürsə "Admin" linki çıxır
+- ⚠️ **MANUAL ADDIM LAZIMDIR:** yeni sxem (`topup_requests`, `receipts` bucket, `profiles.is_admin`) Supabase SQL Editor-da run edilməyib; sonra istifadəçi öz hesabını admin etmək üçün bir dəfəlik `update public.profiles set is_admin = true where id = '<user id>';` işlətməlidir (email-dən user id-ni Supabase Dashboard → Authentication → Users-dan tapır)
+- Kart nömrəsi/CVV-ni öz formamızda toplama qərarı **hələ də qüvvədədir** — yalnız çek şəkli yüklənir, kart məlumatı heç vaxt formada daxil edilmir
 
 ### Email kodu ilə təsdiqləmə (bu sessiyanın son işi)
 - Supabase-də "Confirm email" YENİDƏN AKTİV edildi (əvvəllər prototip üçün söndürülmüşdü)
