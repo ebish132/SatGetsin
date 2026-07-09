@@ -160,6 +160,43 @@ create policy "Tərəf mesaj göndərə bilər"
     )
   );
 
+-- ---------- TƏKLİFLƏR ----------
+create table if not exists public.offers (
+  id uuid primary key default gen_random_uuid(),
+  listing_id uuid not null references public.listings(id) on delete cascade,
+  buyer_id uuid not null references auth.users(id) on delete cascade,
+  amount numeric not null,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected')),
+  created_at timestamptz default now()
+);
+
+alter table public.offers enable row level security;
+
+drop policy if exists "Təkliflər hamı üçün görünür" on public.offers;
+create policy "Təkliflər hamı üçün görünür"
+  on public.offers for select using (true);
+
+drop policy if exists "İstifadəçi təklif verə bilər" on public.offers;
+create policy "İstifadəçi təklif verə bilər"
+  on public.offers for insert
+  with check (
+    auth.uid() = buyer_id
+    and exists (
+      select 1 from public.listings l
+      where l.id = listing_id and l.user_id <> auth.uid()
+    )
+  );
+
+drop policy if exists "Elan sahibi təklifə cavab verə bilər" on public.offers;
+create policy "Elan sahibi təklifə cavab verə bilər"
+  on public.offers for update
+  using (
+    exists (
+      select 1 from public.listings l
+      where l.id = listing_id and l.user_id = auth.uid()
+    )
+  );
+
 -- ---------- STORAGE (avatar + elan şəkilləri) ----------
 insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)

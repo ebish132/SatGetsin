@@ -2,10 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ImageGallery from "@/components/ImageGallery";
+import OfferForm from "@/components/OfferForm";
 import { startConversation } from "@/app/mesajlar/actions";
+import { respondToOffer } from "@/app/elan/[id]/actions";
 import { createClient } from "@/lib/supabase/server";
 import { categories } from "@/lib/categories";
 import type { Listing } from "@/lib/listings";
+
+const OFFER_STATUS_LABEL: Record<string, string> = {
+  pending: "Gözləyir",
+  accepted: "Qəbul edildi",
+  rejected: "Rədd edildi",
+};
+
+const OFFER_STATUS_CLASS: Record<string, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  accepted: "bg-green-50 text-green-700",
+  rejected: "bg-red-50 text-red-600",
+};
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("az-AZ", {
@@ -81,6 +95,24 @@ export default async function ElanDetailPage({
   const isOwner = user?.id === l.user_id;
   const categoryName =
     categories.find((c) => c.slug === l.category)?.name ?? l.category;
+
+  const { data: offers } = await supabase
+    .from("offers")
+    .select("id, buyer_id, amount, status, created_at")
+    .eq("listing_id", l.id)
+    .order("created_at", { ascending: false });
+
+  const buyerIds = [...new Set((offers ?? []).map((o) => o.buyer_id))];
+  const { data: buyerProfiles } = buyerIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", buyerIds)
+    : { data: [] as { id: string; full_name: string | null }[] };
+
+  const buyerNameById = new Map(
+    (buyerProfiles ?? []).map((p) => [p.id, p.full_name || "İstifadəçi"]),
+  );
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
@@ -191,6 +223,80 @@ export default async function ElanDetailPage({
                   💬 Satıcıya mesaj yaz
                 </button>
               </form>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-5">
+            <h2 className="text-sm font-semibold text-gray-900">Təkliflər</h2>
+
+            {offers && offers.length > 0 ? (
+              <ul className="mt-3 space-y-3">
+                {offers.map((o) => (
+                  <li
+                    key={o.id}
+                    className="flex items-center justify-between gap-2 border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {o.amount.toLocaleString("az")} AZN
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {buyerNameById.get(o.buyer_id) ?? "İstifadəçi"}
+                      </p>
+                    </div>
+
+                    {isOwner && o.status === "pending" ? (
+                      <div className="flex gap-1.5">
+                        <form action={respondToOffer}>
+                          <input type="hidden" name="offerId" value={o.id} />
+                          <input type="hidden" name="listingId" value={l.id} />
+                          <input type="hidden" name="status" value="accepted" />
+                          <button
+                            type="submit"
+                            className="rounded-full bg-green-700 px-3 py-1 text-xs font-medium text-white hover:bg-green-800"
+                          >
+                            Qəbul et
+                          </button>
+                        </form>
+                        <form action={respondToOffer}>
+                          <input type="hidden" name="offerId" value={o.id} />
+                          <input type="hidden" name="listingId" value={l.id} />
+                          <input type="hidden" name="status" value="rejected" />
+                          <button
+                            type="submit"
+                            className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            Rədd et
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${OFFER_STATUS_CLASS[o.status]}`}
+                      >
+                        {OFFER_STATUS_LABEL[o.status]}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-gray-500">Hələ təklif yoxdur.</p>
+            )}
+
+            {!isOwner && l.status === "active" && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                {user ? (
+                  <OfferForm listingId={l.id} />
+                ) : (
+                  <Link
+                    href={`/login?next=/elan/${l.id}`}
+                    className="block rounded-full border border-gray-300 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Təklif vermək üçün daxil olun
+                  </Link>
+                )}
+              </div>
             )}
           </div>
         </div>
