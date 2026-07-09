@@ -49,7 +49,7 @@ export default async function Header() {
             <>
               <Link
                 href="/balans"
-                className="hidden rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 sm:block"
+                className="rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
               >
                 💰 {balance.toFixed(2)} AZN
               </Link>
