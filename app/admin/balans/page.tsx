@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import ReceiptImage from "@/components/ReceiptImage";
 import { approveTopupRequest, rejectTopupRequest } from "./actions";
 
 type Request = {
@@ -86,12 +87,12 @@ export default async function AdminBalansPage() {
                 className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:items-start"
               >
                 {r.signedUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={r.signedUrl}
-                    alt="Çek"
-                    className="h-40 w-full rounded-lg object-cover sm:w-40"
-                  />
+                  <div className="shrink-0 sm:w-40">
+                    <ReceiptImage src={r.signedUrl} />
+                    <p className="mt-1 text-center text-[11px] text-gray-400">
+                      Böyütmək üçün klikləyin
+                    </p>
+                  </div>
                 )}
 
                 <div className="flex-1">

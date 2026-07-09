@@ -17,6 +17,7 @@ export default function TopUpForm({ userId }: { userId: string }) {
   const [amount, setAmount] = useState(10);
   const [showPayment, setShowPayment] = useState(false);
   const [receiptPath, setReceiptPath] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
@@ -24,6 +25,7 @@ export default function TopUpForm({ userId }: { userId: string }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     setUploadError("");
 
@@ -129,12 +131,34 @@ export default function TopUpForm({ userId }: { userId: string }) {
             <label className="text-xs font-medium text-gray-600">
               Çekin şəkli
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleReceiptChange}
-              className="mt-1 w-full text-sm"
-            />
+            <label
+              htmlFor="receipt-upload"
+              className={`mt-1 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed bg-gray-50 px-4 py-6 text-center transition hover:bg-gray-100 ${
+                receiptPath ? "border-green-400" : "border-gray-300"
+              }`}
+            >
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl}
+                  alt="Seçilmiş çek"
+                  className="mb-1 h-24 rounded-md object-contain"
+                />
+              ) : (
+                <span className="text-2xl">📎</span>
+              )}
+              <span className="text-sm font-medium text-gray-700">
+                {receiptPath ? "Başqa şəkil seç" : "Çekin şəklini buradan yükləyin"}
+              </span>
+              <span className="text-xs text-gray-400">Kliklə şəkil seç</span>
+              <input
+                id="receipt-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleReceiptChange}
+                className="hidden"
+              />
+            </label>
             {uploading && (
               <p className="mt-1 text-xs text-gray-500">Yüklənir...</p>
             )}
